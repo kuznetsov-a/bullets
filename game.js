@@ -1,13 +1,13 @@
 // Game constants
 const BUILD_VERSION = new Date().getTime(); // Timestamp to force reload
-const BUILD_NAME = "fix-controls2-" + BUILD_VERSION;
+const BUILD_NAME = "shoot-300-" + BUILD_VERSION;
 const PLAYER_SIZE = 20;
 const BULLET_SIZE = 8;
 const ENEMY_SIZE = 25;
 const BULLET_SPEED = 10;
 const ENEMY_SPEED = 1.2;
 const PLAYER_SPEED = 7.5;
-const SHOOT_INTERVAL = 150; // milliseconds
+const SHOOT_INTERVAL = 300; // milliseconds
 const SPAWN_INTERVAL = 500; // milliseconds (0.5 seconds)
 const POOL_SIZE = {
     BULLETS: 200,
