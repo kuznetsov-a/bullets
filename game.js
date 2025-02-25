@@ -1,4 +1,5 @@
 // Game constants
+const BUILD_NAME = "fix-controls";
 const PLAYER_SIZE = 20;
 const BULLET_SIZE = 8;
 const ENEMY_SIZE = 25;
@@ -64,6 +65,9 @@ function init() {
     
     // Setup joystick
     setupJoystick();
+    
+    // Display build name
+    document.getElementById('buildName').textContent = BUILD_NAME;
     
     // Start the game loop
     requestAnimationFrame(gameLoop);
