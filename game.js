@@ -19,8 +19,15 @@ const app = new PIXI.Application({
     resolution: window.devicePixelRatio || 1,
     autoDensity: true,
     antialias: false,
+    forceCanvas: true, // Force Canvas renderer instead of WebGL
 });
 document.getElementById('game-canvas').appendChild(app.view);
+
+// Add this after app initialization to handle WebGL context loss
+app.renderer.on('context lost', function(event) {
+    console.error('WebGL context lost:', event);
+    alert('WebGL context lost. Please refresh the page.');
+});
 
 // Create object pools for better performance
 const bulletPool = [];
