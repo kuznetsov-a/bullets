@@ -1,5 +1,5 @@
 // Game constants
-const BUILD_NAME = "fix-controls";
+const BUILD_NAME = "fix-controls2";
 const PLAYER_SIZE = 20;
 const BULLET_SIZE = 8;
 const ENEMY_SIZE = 25;
@@ -112,10 +112,9 @@ function setupJoystick() {
     game.joystick.on('move', (evt, data) => {
         const force = Math.min(1, data.force);
         
-        // Get the normalized vector components and invert both axes
-        // This fixes the reversed controls
-        const directionX = -data.vector.x;
-        const directionY = -data.vector.y;
+        // Only invert the Y axis, keep X axis normal
+        const directionX = data.vector.x;  // No negative sign here
+        const directionY = -data.vector.y; // Keep the negative sign for Y
         
         game.player.vx = directionX * PLAYER_SPEED * force;
         game.player.vy = directionY * PLAYER_SPEED * force;
