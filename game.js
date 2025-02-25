@@ -108,10 +108,10 @@ function setupJoystick() {
     game.joystick.on('move', (evt, data) => {
         const force = Math.min(1, data.force);
         
-        // Get the normalized vector components directly from the joystick data
-        // This ensures we're using the correct coordinate system
-        const directionX = data.vector.x;
-        const directionY = data.vector.y;
+        // Get the normalized vector components and invert both axes
+        // This fixes the reversed controls
+        const directionX = -data.vector.x;
+        const directionY = -data.vector.y;
         
         game.player.vx = directionX * PLAYER_SPEED * force;
         game.player.vy = directionY * PLAYER_SPEED * force;
