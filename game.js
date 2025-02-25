@@ -1,425 +1,406 @@
 // Game constants
-const PLAYER_SPEED = 5;
+const PLAYER_SIZE = 20;
+const BULLET_SIZE = 8;
+const ENEMY_SIZE = 25;
 const BULLET_SPEED = 10;
-const ENEMY_SPEED = 2;
-const SPAWN_INTERVAL = 500; // 0.5 seconds
-const SHOOT_INTERVAL = 200; // 0.2 seconds
+const ENEMY_SPEED = 1.5;
+const PLAYER_SPEED = 5;
+const SHOOT_INTERVAL = 150; // milliseconds
+const SPAWN_INTERVAL = 500; // milliseconds (0.5 seconds)
+const POOL_SIZE = {
+    BULLETS: 200,
+    ENEMIES: 300,
+    PARTICLES: 500
+};
 
 // Game state
-let score = 0;
-let lastSpawnTime = 0;
-let lastShootTime = 0;
-let joystickData = { active: false, dx: 0, dy: 0 };
+const game = {
+    canvas: null,
+    ctx: null,
+    width: 0,
+    height: 0,
+    player: {
+        x: 0,
+        y: 0,
+        vx: 0,
+        vy: 0,
+        lastShot: 0,
+        isMoving: false
+    },
+    bullets: [],
+    enemies: [],
+    particles: [],
+    score: 0,
+    joystick: null,
+    lastTime: 0,
+    spawnTimer: 0,
+    frameCount: 0,
+    lastFpsUpdate: 0,
+    fps: 0
+};
 
-// Initialize PIXI Application
-const app = new PIXI.Application({
-    width: window.innerWidth,
-    height: window.innerHeight,
-    backgroundColor: 0x000000,
-    resolution: window.devicePixelRatio || 1,
-    autoDensity: true,
-    antialias: false,
-    forceCanvas: true, // Force Canvas renderer instead of WebGL
-});
-document.getElementById('game-canvas').appendChild(app.view);
+// Object pools for reusing entities
+const pools = {
+    bullets: [],
+    enemies: [],
+    particles: []
+};
 
-// Add this after app initialization to handle WebGL context loss
-app.renderer.on('context lost', function(event) {
-    console.error('WebGL context lost:', event);
-    alert('WebGL context lost. Please refresh the page.');
-});
-
-// Create object pools for better performance
-const bulletPool = [];
-const enemyPool = [];
-const particlePool = [];
-
-// Create textures once for reuse
-const playerTexture = createTriangleTexture(20, 0x00FF00);
-const bulletTexture = createCircleTexture(5, 0xFFFF00);
-const enemyTexture = createCircleTexture(20, 0xFF0000);
-const particleTexture = createCircleTexture(3, 0xFFFFFF);
-
-// Create player
-const player = new PIXI.Graphics();
-player.beginFill(0x00FF00);
-player.moveTo(0, -20);
-player.lineTo(-20, 20);
-player.lineTo(20, 20);
-player.lineTo(0, -20);
-player.endFill();
-player.x = app.screen.width / 2;
-player.y = app.screen.height / 2;
-app.stage.addChild(player);
-
-// Create containers for better performance
-const bulletsContainer = new PIXI.ParticleContainer(1000, {
-    position: true,
-    rotation: false,
-    uvs: false,
-    tint: false
-});
-app.stage.addChild(bulletsContainer);
-
-const enemiesContainer = new PIXI.ParticleContainer(1000, {
-    position: true,
-    rotation: false,
-    uvs: false,
-    tint: false
-});
-app.stage.addChild(enemiesContainer);
-
-const particlesContainer = new PIXI.ParticleContainer(2000, {
-    position: true,
-    rotation: false,
-    uvs: false,
-    alpha: true,
-    scale: false
-});
-app.stage.addChild(particlesContainer);
-
-// Helper function to create circle textures
-function createCircleTexture(radius, color) {
-    const graphics = new PIXI.Graphics();
-    graphics.beginFill(color);
-    graphics.drawCircle(0, 0, radius);
-    graphics.endFill();
-    return app.renderer.generateTexture(graphics);
+// Initialize the game
+function init() {
+    game.canvas = document.getElementById('gameCanvas');
+    game.ctx = game.canvas.getContext('2d');
+    
+    // Set canvas dimensions to match the window
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    // Initialize player position
+    game.player.x = game.width / 2;
+    game.player.y = game.height / 2;
+    
+    // Initialize object pools
+    initPools();
+    
+    // Setup joystick
+    setupJoystick();
+    
+    // Start the game loop
+    requestAnimationFrame(gameLoop);
 }
 
-// New helper function to create triangle texture
-function createTriangleTexture(size, color) {
-    const graphics = new PIXI.Graphics();
-    graphics.beginFill(color);
-    // Draw a triangle pointing upward
-    graphics.moveTo(0, -size);        // Top point
-    graphics.lineTo(-size, size);     // Bottom left
-    graphics.lineTo(size, size);      // Bottom right
-    graphics.lineTo(0, -size);        // Back to top
-    graphics.endFill();
-    return app.renderer.generateTexture(graphics);
-}
-
-// Setup joystick
-const joystickArea = document.getElementById('joystick-area');
-const joystick = document.getElementById('joystick');
-const joystickRect = joystickArea.getBoundingClientRect();
-const centerX = joystickRect.width / 2;
-const centerY = joystickRect.height / 2;
-const maxDistance = joystickRect.width / 2 - joystick.offsetWidth / 2;
-
-// Joystick touch handlers
-joystickArea.addEventListener('touchstart', handleJoystickStart);
-joystickArea.addEventListener('touchmove', handleJoystickMove);
-joystickArea.addEventListener('touchend', handleJoystickEnd);
-
-function handleJoystickStart(e) {
-    e.preventDefault();
-    joystickData.active = true;
-    handleJoystickMove(e);
-}
-
-function handleJoystickMove(e) {
-    if (!joystickData.active) return;
-    e.preventDefault();
-    
-    const touch = e.touches[0];
-    const rect = joystickArea.getBoundingClientRect();
-    
-    let dx = touch.clientX - rect.left - centerX;
-    let dy = touch.clientY - rect.top - centerY;
-    
-    // Calculate distance from center
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    // Normalize if distance is greater than maxDistance
-    if (distance > maxDistance) {
-        dx = (dx / distance) * maxDistance;
-        dy = (dy / distance) * maxDistance;
+// Initialize object pools
+function initPools() {
+    // Create bullet pool
+    for (let i = 0; i < POOL_SIZE.BULLETS; i++) {
+        pools.bullets.push({
+            x: 0, y: 0, vx: 0, vy: 0, active: false
+        });
     }
     
-    // Update joystick position
-    joystick.style.transform = `translate(${dx}px, ${dy}px)`;
+    // Create enemy pool
+    for (let i = 0; i < POOL_SIZE.ENEMIES; i++) {
+        pools.enemies.push({
+            x: 0, y: 0, vx: 0, vy: 0, health: 1, active: false
+        });
+    }
     
-    // Normalize for player movement (values between -1 and 1)
-    joystickData.dx = dx / maxDistance;
-    joystickData.dy = dy / maxDistance;
+    // Create particle pool
+    for (let i = 0; i < POOL_SIZE.PARTICLES; i++) {
+        pools.particles.push({
+            x: 0, y: 0, vx: 0, vy: 0, size: 3, life: 0, maxLife: 20, active: false
+        });
+    }
 }
 
-function handleJoystickEnd(e) {
-    e.preventDefault();
-    joystickData.active = false;
-    joystickData.dx = 0;
-    joystickData.dy = 0;
-    joystick.style.transform = 'translate(0px, 0px)';
-}
-
-// Game loop
-app.ticker.add((delta) => {
-    const currentTime = Date.now();
+// Set up joystick control
+function setupJoystick() {
+    const joystickOptions = {
+        zone: document.getElementById('joystickArea'),
+        mode: 'static',
+        position: { left: '75px', bottom: '75px' },
+        color: 'white',
+        size: 100
+    };
     
-    // Move player based on joystick
-    if (joystickData.active) {
-        player.x += joystickData.dx * PLAYER_SPEED * delta;
-        player.y += joystickData.dy * PLAYER_SPEED * delta;
+    game.joystick = nipplejs.create(joystickOptions);
+    
+    game.joystick.on('move', (evt, data) => {
+        const force = Math.min(1, data.force);
+        const angle = data.angle.radian;
         
-        // Keep player within bounds
-        player.x = Math.max(player.width / 2, Math.min(app.screen.width - player.width / 2, player.x));
-        player.y = Math.max(player.height / 2, Math.min(app.screen.height - player.height / 2, player.y));
+        game.player.vx = Math.cos(angle) * PLAYER_SPEED * force;
+        game.player.vy = Math.sin(angle) * PLAYER_SPEED * force;
+        game.player.isMoving = true;
+    });
+    
+    game.joystick.on('end', () => {
+        game.player.vx = 0;
+        game.player.vy = 0;
+        game.player.isMoving = false;
+    });
+}
+
+// Resize canvas to match the window
+function resizeCanvas() {
+    game.canvas.width = window.innerWidth;
+    game.canvas.height = window.innerHeight;
+    game.width = game.canvas.width;
+    game.height = game.canvas.height;
+}
+
+// Get an object from pool
+function getFromPool(pool) {
+    for (let i = 0; i < pool.length; i++) {
+        if (!pool[i].active) {
+            pool[i].active = true;
+            return pool[i];
+        }
+    }
+    return null; // Pool is depleted
+}
+
+// Spawn a new enemy
+function spawnEnemy() {
+    const enemy = getFromPool(pools.enemies);
+    if (!enemy) return;
+    
+    // Determine spawn position (outside the viewport)
+    let x, y;
+    if (Math.random() < 0.5) {
+        // Spawn at the sides
+        x = Math.random() < 0.5 ? -ENEMY_SIZE : game.width + ENEMY_SIZE;
+        y = Math.random() * game.height;
+    } else {
+        // Spawn at top or bottom
+        x = Math.random() * game.width;
+        y = Math.random() < 0.5 ? -ENEMY_SIZE : game.height + ENEMY_SIZE;
+    }
+    
+    // Calculate direction towards player
+    const dx = game.player.x - x;
+    const dy = game.player.y - y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    
+    // Set enemy properties
+    enemy.x = x;
+    enemy.y = y;
+    enemy.vx = (dx / dist) * ENEMY_SPEED;
+    enemy.vy = (dy / dist) * ENEMY_SPEED;
+    enemy.health = 1;
+    
+    game.enemies.push(enemy);
+}
+
+// Create a bullet
+function shootBullet() {
+    // Don't shoot if not enough time has passed
+    const currentTime = Date.now();
+    if (currentTime - game.player.lastShot < SHOOT_INTERVAL) {
+        return;
+    }
+    
+    game.player.lastShot = currentTime;
+    
+    // Create bullet in all 8 directions for bullet heaven style
+    const directions = [
+        {x: 0, y: -1},    // Up
+        {x: 1, y: -1},    // Up-Right
+        {x: 1, y: 0},     // Right
+        {x: 1, y: 1},     // Down-Right
+        {x: 0, y: 1},     // Down
+        {x: -1, y: 1},    // Down-Left
+        {x: -1, y: 0},    // Left
+        {x: -1, y: -1}    // Up-Left
+    ];
+    
+    directions.forEach(dir => {
+        const bullet = getFromPool(pools.bullets);
+        if (!bullet) return;
+        
+        const length = Math.sqrt(dir.x * dir.x + dir.y * dir.y);
+        bullet.x = game.player.x;
+        bullet.y = game.player.y;
+        bullet.vx = (dir.x / length) * BULLET_SPEED;
+        bullet.vy = (dir.y / length) * BULLET_SPEED;
+        
+        game.bullets.push(bullet);
+    });
+}
+
+// Create explosion particle effect
+function createExplosion(x, y, count) {
+    for (let i = 0; i < count; i++) {
+        const particle = getFromPool(pools.particles);
+        if (!particle) continue;
+        
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1 + Math.random() * 3;
+        
+        particle.x = x;
+        particle.y = y;
+        particle.vx = Math.cos(angle) * speed;
+        particle.vy = Math.sin(angle) * speed;
+        particle.size = 2 + Math.random() * 3;
+        particle.life = 0;
+        particle.maxLife = 10 + Math.random() * 20;
+        
+        game.particles.push(particle);
+    }
+}
+
+// Update game state
+function update(deltaTime) {
+    // Update player position
+    game.player.x += game.player.vx;
+    game.player.y += game.player.vy;
+    
+    // Keep player within bounds
+    game.player.x = Math.max(PLAYER_SIZE, Math.min(game.width - PLAYER_SIZE, game.player.x));
+    game.player.y = Math.max(PLAYER_SIZE, Math.min(game.height - PLAYER_SIZE, game.player.y));
+    
+    // Auto shoot if player is moving or enemies are present
+    if (game.player.isMoving || game.enemies.length > 0) {
+        shootBullet();
     }
     
     // Spawn enemies
-    if (currentTime - lastSpawnTime > SPAWN_INTERVAL) {
+    game.spawnTimer += deltaTime;
+    if (game.spawnTimer >= SPAWN_INTERVAL) {
         spawnEnemy();
-        lastSpawnTime = currentTime;
-    }
-    
-    // Auto shoot
-    if (currentTime - lastShootTime > SHOOT_INTERVAL) {
-        shoot();
-        lastShootTime = currentTime;
+        game.spawnTimer -= SPAWN_INTERVAL;
     }
     
     // Update bullets
-    for (let i = 0; i < bulletsContainer.children.length; i++) {
-        const bullet = bulletsContainer.children[i];
-        bullet.x += bullet.vx * delta;
-        bullet.y += bullet.vy * delta;
+    for (let i = game.bullets.length - 1; i >= 0; i--) {
+        const bullet = game.bullets[i];
+        bullet.x += bullet.vx;
+        bullet.y += bullet.vy;
         
-        // Remove bullets that are off-screen
-        if (bullet.x < 0 || bullet.x > app.screen.width || 
-            bullet.y < 0 || bullet.y > app.screen.height) {
-            recycleBullet(bullet, i);
-            i--;
+        // Remove bullets that go off-screen
+        if (bullet.x < -BULLET_SIZE || bullet.x > game.width + BULLET_SIZE ||
+            bullet.y < -BULLET_SIZE || bullet.y > game.height + BULLET_SIZE) {
+            bullet.active = false;
+            game.bullets.splice(i, 1);
         }
     }
     
     // Update enemies
-    for (let i = 0; i < enemiesContainer.children.length; i++) {
-        const enemy = enemiesContainer.children[i];
+    for (let i = game.enemies.length - 1; i >= 0; i--) {
+        const enemy = game.enemies[i];
+        enemy.x += enemy.vx;
+        enemy.y += enemy.vy;
         
-        // Move enemy towards player
-        const dx = player.x - enemy.x;
-        const dy = player.y - enemy.y;
+        // Check for bullet collisions
+        for (let j = game.bullets.length - 1; j >= 0; j--) {
+            const bullet = game.bullets[j];
+            const dx = enemy.x - bullet.x;
+            const dy = enemy.y - bullet.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < ENEMY_SIZE / 2 + BULLET_SIZE / 2) {
+                // Enemy hit
+                enemy.health--;
+                bullet.active = false;
+                game.bullets.splice(j, 1);
+                
+                if (enemy.health <= 0) {
+                    // Enemy destroyed
+                    createExplosion(enemy.x, enemy.y, 10);
+                    enemy.active = false;
+                    game.enemies.splice(i, 1);
+                    game.score += 10;
+                    document.getElementById('score').textContent = game.score;
+                    break;
+                }
+            }
+        }
+        
+        // Check for player collision
+        const dx = game.player.x - enemy.x;
+        const dy = game.player.y - enemy.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        if (distance > 0) {
-            enemy.x += (dx / distance) * ENEMY_SPEED * delta;
-            enemy.y += (dy / distance) * ENEMY_SPEED * delta;
+        if (distance < PLAYER_SIZE / 2 + ENEMY_SIZE / 2) {
+            // Player hit by enemy - Game over scenario could be implemented here
+            createExplosion(enemy.x, enemy.y, 20);
+            enemy.active = false;
+            game.enemies.splice(i, 1);
         }
         
-        // Check collision with player
-        if (distance < player.width / 2 + enemy.width / 2) {
-            // Game over logic would go here
-            createExplosion(player.x, player.y, 0xFFFFFF, 30);
-            resetGame();
-            return;
-        }
-        
-        // Check collision with bullets
-        for (let j = 0; j < bulletsContainer.children.length; j++) {
-            const bullet = bulletsContainer.children[j];
-            const bx = bullet.x - enemy.x;
-            const by = bullet.y - enemy.y;
-            const bDistance = Math.sqrt(bx * bx + by * by);
-            
-            if (bDistance < bullet.width / 2 + enemy.width / 2) {
-                // Enemy hit
-                createExplosion(enemy.x, enemy.y, 0xFF0000, 10);
-                recycleEnemy(enemy, i);
-                recycleBullet(bullet, j);
-                i--;
-                j--;
-                
-                // Update score
-                score += 10;
-                document.getElementById('score').textContent = `Score: ${score}`;
-                break;
-            }
+        // Remove enemies that go too far off-screen
+        if (enemy.x < -ENEMY_SIZE * 3 || enemy.x > game.width + ENEMY_SIZE * 3 ||
+            enemy.y < -ENEMY_SIZE * 3 || enemy.y > game.height + ENEMY_SIZE * 3) {
+            enemy.active = false;
+            game.enemies.splice(i, 1);
         }
     }
     
     // Update particles
-    for (let i = 0; i < particlesContainer.children.length; i++) {
-        const particle = particlesContainer.children[i];
-        particle.x += particle.vx * delta;
-        particle.y += particle.vy * delta;
-        particle.alpha -= 0.01 * delta;
+    for (let i = game.particles.length - 1; i >= 0; i--) {
+        const particle = game.particles[i];
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.life++;
         
-        if (particle.alpha <= 0) {
-            recycleParticle(particle, i);
-            i--;
+        if (particle.life >= particle.maxLife) {
+            particle.active = false;
+            game.particles.splice(i, 1);
         }
     }
-});
-
-// Spawn enemy
-function spawnEnemy() {
-    let enemy;
     
-    if (enemyPool.length > 0) {
-        enemy = enemyPool.pop();
-    } else {
-        // Create enemy directly with Graphics instead of using texture
-        enemy = new PIXI.Graphics();
-        enemy.beginFill(0xFF0000);
-        enemy.drawCircle(0, 0, 20);
-        enemy.endFill();
-    }
-    
-    // Position enemy at a random edge of the screen
-    const side = Math.floor(Math.random() * 4);
-    switch (side) {
-        case 0: // Top
-            enemy.x = Math.random() * app.screen.width;
-            enemy.y = -40;
-            break;
-        case 1: // Right
-            enemy.x = app.screen.width + 40;
-            enemy.y = Math.random() * app.screen.height;
-            break;
-        case 2: // Bottom
-            enemy.x = Math.random() * app.screen.width;
-            enemy.y = app.screen.height + 40;
-            break;
-        case 3: // Left
-            enemy.x = -40;
-            enemy.y = Math.random() * app.screen.height;
-            break;
-    }
-    
-    enemiesContainer.addChild(enemy);
+    // Update entity count display
+    document.getElementById('entityCount').textContent = 
+        game.bullets.length + game.enemies.length + game.particles.length;
 }
 
-// Shoot bullet
-function shoot() {
-    let bullet;
+// Render the game
+function render() {
+    // Clear the canvas
+    game.ctx.clearRect(0, 0, game.width, game.height);
     
-    if (bulletPool.length > 0) {
-        bullet = bulletPool.pop();
-    } else {
-        bullet = new PIXI.Sprite(bulletTexture);
-        bullet.anchor.set(0.5);
+    // Draw player
+    game.ctx.fillStyle = '#3498db';
+    game.ctx.beginPath();
+    game.ctx.arc(game.player.x, game.player.y, PLAYER_SIZE / 2, 0, Math.PI * 2);
+    game.ctx.fill();
+    
+    // Draw bullets
+    game.ctx.fillStyle = '#f39c12';
+    for (const bullet of game.bullets) {
+        game.ctx.beginPath();
+        game.ctx.arc(bullet.x, bullet.y, BULLET_SIZE / 2, 0, Math.PI * 2);
+        game.ctx.fill();
     }
     
-    bullet.x = player.x;
-    bullet.y = player.y;
+    // Draw enemies
+    game.ctx.fillStyle = '#e74c3c';
+    for (const enemy of game.enemies) {
+        game.ctx.beginPath();
+        game.ctx.arc(enemy.x, enemy.y, ENEMY_SIZE / 2, 0, Math.PI * 2);
+        game.ctx.fill();
+    }
     
-    // Calculate direction (shoot in 8 directions)
-    const directions = [
-        { x: 0, y: -1 },    // Up
-        { x: 1, y: -1 },    // Up-Right
-        { x: 1, y: 0 },     // Right
-        { x: 1, y: 1 },     // Down-Right
-        { x: 0, y: 1 },     // Down
-        { x: -1, y: 1 },    // Down-Left
-        { x: -1, y: 0 },    // Left
-        { x: -1, y: -1 }    // Up-Left
-    ];
-    
-    // Get current time to create a cycling pattern
-    const dirIndex = Math.floor(Date.now() / 100) % directions.length;
-    const dir = directions[dirIndex];
-    
-    bullet.vx = dir.x * BULLET_SPEED;
-    bullet.vy = dir.y * BULLET_SPEED;
-    
-    bulletsContainer.addChild(bullet);
-}
-
-// Create explosion effect
-function createExplosion(x, y, color, count) {
-    for (let i = 0; i < count; i++) {
-        let particle;
-        
-        if (particlePool.length > 0) {
-            particle = particlePool.pop();
-        } else {
-            particle = new PIXI.Sprite(particleTexture);
-            particle.anchor.set(0.5);
-        }
-        
-        particle.x = x;
-        particle.y = y;
-        particle.alpha = 1;
-        
-        // Random direction
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 2 + 1;
-        particle.vx = Math.cos(angle) * speed;
-        particle.vy = Math.sin(angle) * speed;
-        
-        particlesContainer.addChild(particle);
+    // Draw particles
+    for (const particle of game.particles) {
+        const alpha = 1 - (particle.life / particle.maxLife);
+        game.ctx.fillStyle = `rgba(255, 200, 0, ${alpha})`;
+        game.ctx.beginPath();
+        game.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        game.ctx.fill();
     }
 }
 
-// Object recycling functions for better performance
-function recycleBullet(bullet, index) {
-    bulletsContainer.removeChild(bullet);
-    bulletPool.push(bullet);
-}
-
-function recycleEnemy(enemy, index) {
-    enemiesContainer.removeChild(enemy);
-    enemyPool.push(enemy);
-}
-
-function recycleParticle(particle, index) {
-    particlesContainer.removeChild(particle);
-    particlePool.push(particle);
-}
-
-// Reset game
-function resetGame() {
-    // Clear all entities
-    while (bulletsContainer.children.length > 0) {
-        recycleBullet(bulletsContainer.children[0], 0);
+// Calculate and update FPS
+function updateFPS(timestamp) {
+    game.frameCount++;
+    
+    if (timestamp - game.lastFpsUpdate >= 1000) {
+        game.fps = Math.round((game.frameCount * 1000) / (timestamp - game.lastFpsUpdate));
+        document.getElementById('fps').textContent = game.fps;
+        game.frameCount = 0;
+        game.lastFpsUpdate = timestamp;
     }
-    
-    while (enemiesContainer.children.length > 0) {
-        recycleEnemy(enemiesContainer.children[0], 0);
-    }
-    
-    while (particlesContainer.children.length > 0) {
-        recycleParticle(particlesContainer.children[0], 0);
-    }
-    
-    // Reset player position
-    player.x = app.screen.width / 2;
-    player.y = app.screen.height / 2;
-    
-    // Reset score
-    score = 0;
-    document.getElementById('score').textContent = `Score: ${score}`;
 }
 
-// Handle window resize
-window.addEventListener('resize', () => {
-    app.renderer.resize(window.innerWidth, window.innerHeight);
-    player.x = app.screen.width / 2;
-    player.y = app.screen.height / 2;
-});
+// Main game loop
+function gameLoop(timestamp) {
+    // Calculate delta time
+    const deltaTime = timestamp - game.lastTime;
+    game.lastTime = timestamp;
+    
+    // Update FPS counter
+    updateFPS(timestamp);
+    
+    // Update game state
+    update(deltaTime);
+    
+    // Render the game
+    render();
+    
+    // Continue the game loop
+    requestAnimationFrame(gameLoop);
+}
 
-// Debug information
-console.log("Game initialized");
-console.log("Screen dimensions:", app.screen.width, "x", app.screen.height);
-console.log("Player position:", player.x, player.y);
-console.log("Player visible:", player.visible);
-console.log("Player dimensions:", player.width, "x", player.height);
-console.log("Player texture:", playerTexture ? "created" : "missing");
-
-// Check if PIXI is properly initialized
-console.log("PIXI initialized:", PIXI ? "yes" : "no");
-console.log("App created:", app ? "yes" : "no");
-console.log("Canvas added to DOM:", document.getElementById('game-canvas').children.length > 0 ? "yes" : "no");
-
-// Make player more visible
-player.scale.set(2); // Make player bigger
-
-// Force spawn an enemy for testing
-spawnEnemy();
-console.log("Test enemy spawned");
-
-// Add visible border to canvas for debugging
-const canvasElement = document.getElementById('game-canvas');
-canvasElement.style.border = "1px solid red"; 
+// Start the game when the window loads
+window.addEventListener('load', init); 
