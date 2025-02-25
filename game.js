@@ -28,7 +28,7 @@ const enemyPool = [];
 const particlePool = [];
 
 // Create textures once for reuse
-const playerTexture = createCircleTexture(15, 0x00FFFF);
+const playerTexture = createTriangleTexture(20, 0x00FF00);
 const bulletTexture = createCircleTexture(5, 0xFFFF00);
 const enemyTexture = createCircleTexture(20, 0xFF0000);
 const particleTexture = createCircleTexture(3, 0xFFFFFF);
@@ -71,6 +71,19 @@ function createCircleTexture(radius, color) {
     const graphics = new PIXI.Graphics();
     graphics.beginFill(color);
     graphics.drawCircle(0, 0, radius);
+    graphics.endFill();
+    return app.renderer.generateTexture(graphics);
+}
+
+// New helper function to create triangle texture
+function createTriangleTexture(size, color) {
+    const graphics = new PIXI.Graphics();
+    graphics.beginFill(color);
+    // Draw a triangle pointing upward
+    graphics.moveTo(0, -size);        // Top point
+    graphics.lineTo(-size, size);     // Bottom left
+    graphics.lineTo(size, size);      // Bottom right
+    graphics.lineTo(0, -size);        // Back to top
     graphics.endFill();
     return app.renderer.generateTexture(graphics);
 }
@@ -370,4 +383,17 @@ window.addEventListener('resize', () => {
     app.renderer.resize(window.innerWidth, window.innerHeight);
     player.x = app.screen.width / 2;
     player.y = app.screen.height / 2;
-}); 
+});
+
+// Debug information
+console.log("Game initialized");
+console.log("Screen dimensions:", app.screen.width, "x", app.screen.height);
+console.log("Player position:", player.x, player.y);
+
+// Force spawn an enemy for testing
+spawnEnemy();
+console.log("Test enemy spawned");
+
+// Add visible border to canvas for debugging
+const canvasElement = document.getElementById('game-canvas');
+canvasElement.style.border = "1px solid red"; 
