@@ -3,8 +3,8 @@ const PLAYER_SIZE = 20;
 const BULLET_SIZE = 8;
 const ENEMY_SIZE = 25;
 const BULLET_SPEED = 10;
-const ENEMY_SPEED = 1.5;
-const PLAYER_SPEED = 5;
+const ENEMY_SPEED = 1.2;
+const PLAYER_SPEED = 7.5;
 const SHOOT_INTERVAL = 150; // milliseconds
 const SPAWN_INTERVAL = 500; // milliseconds (0.5 seconds)
 const POOL_SIZE = {
@@ -182,30 +182,64 @@ function shootBullet() {
     
     game.player.lastShot = currentTime;
     
-    // Create bullet in all 8 directions for bullet heaven style
-    const directions = [
-        {x: 0, y: -1},    // Up
-        {x: 1, y: -1},    // Up-Right
-        {x: 1, y: 0},     // Right
-        {x: 1, y: 1},     // Down-Right
-        {x: 0, y: 1},     // Down
-        {x: -1, y: 1},    // Down-Left
-        {x: -1, y: 0},    // Left
-        {x: -1, y: -1}    // Up-Left
-    ];
+    // Find closest enemies to target (up to 8)
+    const targets = findClosestEnemies(8);
     
-    directions.forEach(dir => {
-        const bullet = getFromPool(pools.bullets);
-        if (!bullet) return;
+    // If no enemies, shoot in default directions
+    if (targets.length === 0) {
+        const directions = [
+            {x: 0, y: -1},    // Up
+            {x: 1, y: -1},    // Up-Right
+            {x: 1, y: 0},     // Right
+            {x: 1, y: 1},     // Down-Right
+            {x: 0, y: 1},     // Down
+            {x: -1, y: 1},    // Down-Left
+            {x: -1, y: 0},    // Left
+            {x: -1, y: -1}    // Up-Left
+        ];
         
-        const length = Math.sqrt(dir.x * dir.x + dir.y * dir.y);
-        bullet.x = game.player.x;
-        bullet.y = game.player.y;
-        bullet.vx = (dir.x / length) * BULLET_SPEED;
-        bullet.vy = (dir.y / length) * BULLET_SPEED;
-        
-        game.bullets.push(bullet);
+        directions.forEach(dir => {
+            createBullet(dir.x, dir.y);
+        });
+    } else {
+        // Shoot at each target
+        targets.forEach(target => {
+            const dx = target.x - game.player.x;
+            const dy = target.y - game.player.y;
+            createBullet(dx, dy);
+        });
+    }
+}
+
+// Helper function to create a bullet with the given direction
+function createBullet(dx, dy) {
+    const bullet = getFromPool(pools.bullets);
+    if (!bullet) return;
+    
+    const length = Math.sqrt(dx * dx + dy * dy);
+    bullet.x = game.player.x;
+    bullet.y = game.player.y;
+    bullet.vx = (dx / length) * BULLET_SPEED;
+    bullet.vy = (dy / length) * BULLET_SPEED;
+    
+    game.bullets.push(bullet);
+}
+
+// Find the closest enemies to the player
+function findClosestEnemies(maxCount) {
+    // Calculate distances to all enemies
+    const enemiesWithDistance = game.enemies.map(enemy => {
+        const dx = enemy.x - game.player.x;
+        const dy = enemy.y - game.player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return { enemy, distance };
     });
+    
+    // Sort by distance (closest first)
+    enemiesWithDistance.sort((a, b) => a.distance - b.distance);
+    
+    // Return up to maxCount closest enemies
+    return enemiesWithDistance.slice(0, maxCount).map(item => item.enemy);
 }
 
 // Create explosion particle effect
