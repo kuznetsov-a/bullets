@@ -182,39 +182,41 @@ function shootBullet() {
     
     game.player.lastShot = currentTime;
     
-    // Find closest enemies to target (up to 8)
-    const targets = findClosestEnemies(8);
+    // Find the closest enemy
+    let closestEnemy = null;
+    let closestDistance = Infinity;
     
-    // If no enemies, shoot in default directions
-    if (targets.length === 0) {
-        const directions = [
-            {x: 0, y: -1},    // Up
-            {x: 1, y: -1},    // Up-Right
-            {x: 1, y: 0},     // Right
-            {x: 1, y: 1},     // Down-Right
-            {x: 0, y: 1},     // Down
-            {x: -1, y: 1},    // Down-Left
-            {x: -1, y: 0},    // Left
-            {x: -1, y: -1}    // Up-Left
-        ];
+    for (const enemy of game.enemies) {
+        const dx = enemy.x - game.player.x;
+        const dy = enemy.y - game.player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
         
-        directions.forEach(dir => {
-            createBullet(dir.x, dir.y);
-        });
-    } else {
-        // Shoot at each target
-        targets.forEach(target => {
-            const dx = target.x - game.player.x;
-            const dy = target.y - game.player.y;
-            createBullet(dx, dy);
-        });
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestEnemy = enemy;
+        }
     }
-}
-
-// Helper function to create a bullet with the given direction
-function createBullet(dx, dy) {
+    
+    // Create a single bullet targeting the closest enemy or straight ahead if no enemies
     const bullet = getFromPool(pools.bullets);
     if (!bullet) return;
+    
+    let dx, dy;
+    
+    if (closestEnemy) {
+        // Target the closest enemy
+        dx = closestEnemy.x - game.player.x;
+        dy = closestEnemy.y - game.player.y;
+    } else {
+        // No enemies, shoot in the direction the player is facing or default up
+        if (game.player.isMoving && (game.player.vx !== 0 || game.player.vy !== 0)) {
+            dx = game.player.vx;
+            dy = game.player.vy;
+        } else {
+            dx = 0;
+            dy = -1; // Default up
+        }
+    }
     
     const length = Math.sqrt(dx * dx + dy * dy);
     bullet.x = game.player.x;
@@ -223,23 +225,6 @@ function createBullet(dx, dy) {
     bullet.vy = (dy / length) * BULLET_SPEED;
     
     game.bullets.push(bullet);
-}
-
-// Find the closest enemies to the player
-function findClosestEnemies(maxCount) {
-    // Calculate distances to all enemies
-    const enemiesWithDistance = game.enemies.map(enemy => {
-        const dx = enemy.x - game.player.x;
-        const dy = enemy.y - game.player.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        return { enemy, distance };
-    });
-    
-    // Sort by distance (closest first)
-    enemiesWithDistance.sort((a, b) => a.distance - b.distance);
-    
-    // Return up to maxCount closest enemies
-    return enemiesWithDistance.slice(0, maxCount).map(item => item.enemy);
 }
 
 // Create explosion particle effect
@@ -373,11 +358,27 @@ function render() {
     // Clear the canvas
     game.ctx.clearRect(0, 0, game.width, game.height);
     
-    // Draw player
-    game.ctx.fillStyle = '#3498db';
+    // Draw player as a green triangle
+    game.ctx.fillStyle = '#2ecc71'; // Green color
     game.ctx.beginPath();
-    game.ctx.arc(game.player.x, game.player.y, PLAYER_SIZE / 2, 0, Math.PI * 2);
+    
+    // Calculate triangle points (pointing in movement direction or default up)
+    const angle = game.player.isMoving ? 
+        Math.atan2(game.player.vy, game.player.vx) : 
+        -Math.PI/2; // Default pointing up
+    
+    game.ctx.save();
+    game.ctx.translate(game.player.x, game.player.y);
+    game.ctx.rotate(angle);
+    
+    // Draw triangle
+    game.ctx.moveTo(0, -PLAYER_SIZE);
+    game.ctx.lineTo(-PLAYER_SIZE/1.5, PLAYER_SIZE/1.5);
+    game.ctx.lineTo(PLAYER_SIZE/1.5, PLAYER_SIZE/1.5);
+    game.ctx.closePath();
+    
     game.ctx.fill();
+    game.ctx.restore();
     
     // Draw bullets
     game.ctx.fillStyle = '#f39c12';
