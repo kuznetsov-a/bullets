@@ -107,10 +107,14 @@ function setupJoystick() {
     
     game.joystick.on('move', (evt, data) => {
         const force = Math.min(1, data.force);
-        const angle = data.angle.radian;
         
-        game.player.vx = Math.cos(angle) * PLAYER_SPEED * force;
-        game.player.vy = Math.sin(angle) * PLAYER_SPEED * force;
+        // Get the normalized vector components directly from the joystick data
+        // This ensures we're using the correct coordinate system
+        const directionX = data.vector.x;
+        const directionY = data.vector.y;
+        
+        game.player.vx = directionX * PLAYER_SPEED * force;
+        game.player.vy = directionY * PLAYER_SPEED * force;
         game.player.isMoving = true;
     });
     
