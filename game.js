@@ -1,5 +1,6 @@
 // Game constants
-const BUILD_NAME = "fix-controls2";
+const BUILD_VERSION = new Date().getTime(); // Timestamp to force reload
+const BUILD_NAME = "fix-controls2-" + BUILD_VERSION;
 const PLAYER_SIZE = 20;
 const BULLET_SIZE = 8;
 const ENEMY_SIZE = 25;
