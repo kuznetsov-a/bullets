@@ -34,8 +34,13 @@ const enemyTexture = createCircleTexture(20, 0xFF0000);
 const particleTexture = createCircleTexture(3, 0xFFFFFF);
 
 // Create player
-const player = new PIXI.Sprite(playerTexture);
-player.anchor.set(0.5);
+const player = new PIXI.Graphics();
+player.beginFill(0x00FF00);
+player.moveTo(0, -20);
+player.lineTo(-20, 20);
+player.lineTo(20, 20);
+player.lineTo(0, -20);
+player.endFill();
 player.x = app.screen.width / 2;
 player.y = app.screen.height / 2;
 app.stage.addChild(player);
@@ -248,8 +253,11 @@ function spawnEnemy() {
     if (enemyPool.length > 0) {
         enemy = enemyPool.pop();
     } else {
-        enemy = new PIXI.Sprite(enemyTexture);
-        enemy.anchor.set(0.5);
+        // Create enemy directly with Graphics instead of using texture
+        enemy = new PIXI.Graphics();
+        enemy.beginFill(0xFF0000);
+        enemy.drawCircle(0, 0, 20);
+        enemy.endFill();
     }
     
     // Position enemy at a random edge of the screen
@@ -257,18 +265,18 @@ function spawnEnemy() {
     switch (side) {
         case 0: // Top
             enemy.x = Math.random() * app.screen.width;
-            enemy.y = -enemy.height;
+            enemy.y = -40;
             break;
         case 1: // Right
-            enemy.x = app.screen.width + enemy.width;
+            enemy.x = app.screen.width + 40;
             enemy.y = Math.random() * app.screen.height;
             break;
         case 2: // Bottom
             enemy.x = Math.random() * app.screen.width;
-            enemy.y = app.screen.height + enemy.height;
+            enemy.y = app.screen.height + 40;
             break;
         case 3: // Left
-            enemy.x = -enemy.width;
+            enemy.x = -40;
             enemy.y = Math.random() * app.screen.height;
             break;
     }
@@ -389,6 +397,17 @@ window.addEventListener('resize', () => {
 console.log("Game initialized");
 console.log("Screen dimensions:", app.screen.width, "x", app.screen.height);
 console.log("Player position:", player.x, player.y);
+console.log("Player visible:", player.visible);
+console.log("Player dimensions:", player.width, "x", player.height);
+console.log("Player texture:", playerTexture ? "created" : "missing");
+
+// Check if PIXI is properly initialized
+console.log("PIXI initialized:", PIXI ? "yes" : "no");
+console.log("App created:", app ? "yes" : "no");
+console.log("Canvas added to DOM:", document.getElementById('game-canvas').children.length > 0 ? "yes" : "no");
+
+// Make player more visible
+player.scale.set(2); // Make player bigger
 
 // Force spawn an enemy for testing
 spawnEnemy();
