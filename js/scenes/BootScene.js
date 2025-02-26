@@ -14,8 +14,7 @@ class BootScene extends Phaser.Scene {
 
     create() {
         // Set up any game-wide settings
-        this.scale.pageAlignHorizontally = true;
-        this.scale.pageAlignVertically = true;
+        this.scale.refresh();
         
         // Initialize game state manager
         window.gameState = new GameState();

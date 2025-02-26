@@ -33,6 +33,15 @@ const gameConfig = {
             height: CONFIG.MAX_HEIGHT
         },
         zoom: 1
+    },
+    // Add error handling
+    callbacks: {
+        preBoot: function (game) {
+            // Add global error handler
+            window.addEventListener('error', function (e) {
+                console.error('Game Error:', e.message, e);
+            });
+        }
     }
 };
 
@@ -49,5 +58,12 @@ window.addEventListener('load', () => {
     window.addEventListener('resize', resizeGame);
     
     // Create game
-    window.game = new Phaser.Game(gameConfig);
+    try {
+        window.game = new Phaser.Game(gameConfig);
+        
+        // Debug log
+        console.log('Game initialized with config:', gameConfig);
+    } catch (error) {
+        console.error('Failed to initialize game:', error);
+    }
 }); 

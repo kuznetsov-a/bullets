@@ -121,17 +121,21 @@ class UIManager {
             const slot = this.weaponSlots[i];
             const y = startY + (slotSize + slotPadding) * i;
             
+            // Position and scale the background
             slot.bg.setPosition(startX, y);
             slot.bg.setDisplaySize(slotSize, slotSize);
             
+            // Position the icon (if it exists)
             if (slot.icon) {
                 slot.icon.setPosition(startX, y);
                 slot.icon.setDisplaySize(slotSize * 0.8, slotSize * 0.8);
             }
             
+            // For the cooldown graphics, we don't need to set display size
+            // We'll redraw it in the updateWeaponSlots method
+            // Just clear it for now
             if (slot.cooldown) {
-                slot.cooldown.setPosition(startX, y);
-                slot.cooldown.setDisplaySize(slotSize, slotSize);
+                slot.cooldown.clear();
             }
         }
     }
@@ -296,6 +300,7 @@ class UIManager {
                     const centerY = slot.bg.y;
                     const radius = slot.bg.displayWidth / 2;
                     
+                    // Draw the cooldown arc
                     slot.cooldown.moveTo(centerX, centerY);
                     slot.cooldown.arc(
                         centerX,

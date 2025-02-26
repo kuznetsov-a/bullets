@@ -36,13 +36,40 @@
                 object-fit: cover;
             }
         }
+        
+        /* Error message styling */
+        #error-message {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #ff0000;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+            max-width: 80%;
+        }
     </style>
 </head>
 <body>
     <div id="game-container"></div>
+    <div id="error-message"></div>
     
     <!-- Phaser -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    
+    <!-- Error handling -->
+    <script>
+        window.addEventListener('error', function(e) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.style.display = 'block';
+            errorDiv.innerHTML = '<h2>Game Error</h2><p>' + e.message + '</p><p>Please refresh the page to try again.</p>';
+            console.error('Game Error:', e);
+        });
+    </script>
     
     <!-- Game Scripts -->
     <script src="js/config.js"></script>

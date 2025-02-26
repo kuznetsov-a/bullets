@@ -49,12 +49,6 @@ class GameScene extends Phaser.Scene {
         // Create obstacles
         this.createObstacles();
         
-        // Create UI
-        this.uiManager = new UIManager(this);
-        
-        // Create enemy spawner
-        this.spawner = new Spawner(this);
-        
         // Set up camera to follow player
         this.cameras.main.setBounds(0, 0, CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT);
         this.cameras.main.startFollow(this.player.sprite, true, 0.1, 0.1);
@@ -67,6 +61,12 @@ class GameScene extends Phaser.Scene {
         
         // Set up responsive handling
         this.setupResponsiveHandling();
+        
+        // Create UI (after responsive setup so it has correct dimensions)
+        this.uiManager = new UIManager(this);
+        
+        // Create enemy spawner
+        this.spawner = new Spawner(this);
         
         // Start autosave timer
         this.autosaveTimer = this.time.addEvent({
