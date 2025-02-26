@@ -8,11 +8,11 @@ class MainMenuScene extends Phaser.Scene {
 
     create() {
         // Add background
-        this.add.image(CONFIG.GAME_WIDTH / 2, CONFIG.GAME_HEIGHT / 2, 'menu-background')
-            .setDisplaySize(CONFIG.GAME_WIDTH, CONFIG.GAME_HEIGHT);
+        this.add.image(this.scale.width / 2, this.scale.height / 2, 'menu-background')
+            .setDisplaySize(this.scale.width, this.scale.height);
         
         // Add title
-        this.add.text(CONFIG.GAME_WIDTH / 2, 100, 'BULLET HEAVEN', {
+        this.add.text(this.scale.width / 2, 100, 'BULLET HEAVEN', {
             fontFamily: 'Arial',
             fontSize: 48,
             color: '#ffffff',
@@ -25,19 +25,19 @@ class MainMenuScene extends Phaser.Scene {
         const hasSavedGame = window.gameState.hasSavedGame();
         
         // Create buttons
-        this.createButton(CONFIG.GAME_WIDTH / 2, 250, 'NEW GAME', () => {
+        this.createButton(this.scale.width / 2, 250, 'NEW GAME', () => {
             window.gameState.resetGame();
             this.scene.start('GameScene');
         });
         
         if (hasSavedGame) {
-            this.createButton(CONFIG.GAME_WIDTH / 2, 350, 'CONTINUE', () => {
+            this.createButton(this.scale.width / 2, 350, 'CONTINUE', () => {
                 this.scene.start('GameScene');
             });
         }
         
         // Add version info
-        this.add.text(CONFIG.GAME_WIDTH - 10, CONFIG.GAME_HEIGHT - 10, 'v1.0', {
+        this.add.text(this.scale.width - 10, this.scale.height - 10, 'v1.0', {
             fontFamily: 'Arial',
             fontSize: 16,
             color: '#ffffff'
@@ -48,7 +48,7 @@ class MainMenuScene extends Phaser.Scene {
             'CONTROLS: TAP AND DRAG TO MOVE' : 
             'CONTROLS: WASD OR ARROW KEYS TO MOVE';
             
-        this.add.text(CONFIG.GAME_WIDTH / 2, CONFIG.GAME_HEIGHT - 50, controlsText, {
+        this.add.text(this.scale.width / 2, this.scale.height - 50, controlsText, {
             fontFamily: 'Arial',
             fontSize: 18,
             color: '#ffffff',

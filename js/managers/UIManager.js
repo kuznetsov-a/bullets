@@ -203,35 +203,35 @@ class UIManager {
      */
     createWeaponSlots() {
         this.weaponSlots = [];
-        this.weaponCooldowns = [];
-        this.weaponIcons = [];
         
         // Create slots
         for (let i = 0; i < CONFIG.MAX_WEAPONS; i++) {
             // Slot background
-            const slot = this.scene.add.image(
-                CONFIG.GAME_WIDTH - 60,
+            const bg = this.scene.add.image(
+                this.screenWidth - 60,
                 60 + (i * 70),
                 'ui-weapon-slot'
             ).setOrigin(0.5);
             
-            // Cooldown overlay
+            // Cooldown overlay (using graphics for pie chart style cooldown)
             const cooldown = this.scene.add.graphics();
             
             // Weapon icon (if weapon exists)
             const icon = this.scene.add.sprite(
-                CONFIG.GAME_WIDTH - 60,
+                this.screenWidth - 60,
                 60 + (i * 70),
                 'bullet'
             ).setVisible(false);
             
-            // Add to arrays
-            this.weaponSlots.push(slot);
-            this.weaponCooldowns.push(cooldown);
-            this.weaponIcons.push(icon);
-            
             // Add to container
-            this.container.add([slot, cooldown, icon]);
+            this.container.add([bg, cooldown, icon]);
+            
+            // Store reference
+            this.weaponSlots.push({
+                bg: bg,
+                cooldown: cooldown,
+                icon: icon
+            });
         }
     }
     
@@ -243,7 +243,8 @@ class UIManager {
         
         // Update HP bar fill
         const hpPercent = player.hp / player.maxHp;
-        this.hpBarFill.setDisplaySize(200 * hpPercent, 20);
+        const hpBarWidth = this.hpBarBg.displayWidth * hpPercent;
+        this.hpBarFill.setDisplaySize(hpBarWidth, this.hpBarFill.displayHeight);
         
         // Update HP text
         this.hpText.setText(`${player.hp}/${player.maxHp}`);
@@ -257,7 +258,8 @@ class UIManager {
         
         // Update XP bar fill
         const xpPercent = player.xp / player.nextLevelXp;
-        this.xpBarFill.setDisplaySize(200 * xpPercent, 10);
+        const xpBarWidth = this.xpBarBg.displayWidth * xpPercent;
+        this.xpBarFill.setDisplaySize(xpBarWidth, this.xpBarFill.displayHeight);
         
         // Update level text
         this.levelText.setText(`Level: ${player.level}`);
@@ -271,43 +273,50 @@ class UIManager {
         const player = this.scene.player;
         
         // Update each slot
-        for (let i = 0; i < CONFIG.MAX_WEAPONS; i++) {
+        for (let i = 0; i < this.weaponSlots.length; i++) {
+            const slot = this.weaponSlots[i];
             const weapon = player.weapons[i];
             
             if (weapon) {
                 // Show weapon icon
-                this.weaponIcons[i].setVisible(true);
-                this.weaponIcons[i].setTexture(weapon.type.toLowerCase());
+                slot.icon.setVisible(true);
+                slot.icon.setTexture(weapon.type.toLowerCase());
                 
                 // Update cooldown overlay
                 const cooldownPercent = Math.max(0, 1 - ((time - weapon.lastFireTime) / weapon.cooldown));
                 
                 if (cooldownPercent > 0) {
                     // Draw cooldown overlay
-                    this.weaponCooldowns[i].clear();
-                    this.weaponCooldowns[i].fillStyle(0x000000, 0.5);
-                    this.weaponCooldowns[i].beginPath();
-                    this.weaponCooldowns[i].moveTo(CONFIG.GAME_WIDTH - 60, 60 + (i * 70));
-                    this.weaponCooldowns[i].arc(
-                        CONFIG.GAME_WIDTH - 60,
-                        60 + (i * 70),
-                        30,
+                    slot.cooldown.clear();
+                    slot.cooldown.fillStyle(0x000000, 0.5);
+                    slot.cooldown.beginPath();
+                    
+                    // Get the center of the slot
+                    const centerX = slot.bg.x;
+                    const centerY = slot.bg.y;
+                    const radius = slot.bg.displayWidth / 2;
+                    
+                    slot.cooldown.moveTo(centerX, centerY);
+                    slot.cooldown.arc(
+                        centerX,
+                        centerY,
+                        radius,
                         -Math.PI / 2,
                         -Math.PI / 2 + (Math.PI * 2 * cooldownPercent),
                         true
                     );
-                    this.weaponCooldowns[i].closePath();
-                    this.weaponCooldowns[i].fill();
+                    slot.cooldown.closePath();
+                    slot.cooldown.fill();
                 } else {
                     // Clear cooldown overlay
-                    this.weaponCooldowns[i].clear();
+                    slot.cooldown.clear();
                 }
             } else {
                 // Hide weapon icon
-                this.weaponIcons[i].setVisible(false);
+                slot.icon.setVisible(false);
                 
                 // Clear cooldown overlay
-                this.weaponCooldowns[i].clear();
+                slot.cooldown.clear();
             }
         }
     }

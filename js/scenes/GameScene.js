@@ -475,21 +475,32 @@ class GameScene extends Phaser.Scene {
         // Play level up sound
         this.sound.play('sound-level-up', { volume: 0.7 });
         
+        // Calculate menu dimensions based on screen size
+        const menuWidth = Math.min(this.scale.width * 0.8, 600);
+        const menuHeight = Math.min(this.scale.height * 0.8, 500);
+        
         // Create level up menu
         const menuBg = this.add.image(
-            CONFIG.GAME_WIDTH / 2,
-            CONFIG.GAME_HEIGHT / 2,
+            this.scale.width / 2,
+            this.scale.height / 2,
             'level-up-background'
         ).setScrollFactor(0).setDepth(100);
         
+        // Scale the background to fit the screen
+        menuBg.setDisplaySize(menuWidth, menuHeight);
+        
+        // Calculate font sizes based on screen size
+        const titleFontSize = Math.max(24, Math.min(32, this.scale.width / 20));
+        const optionFontSize = Math.max(16, Math.min(20, this.scale.width / 30));
+        
         // Add title
         const title = this.add.text(
-            CONFIG.GAME_WIDTH / 2,
-            CONFIG.GAME_HEIGHT / 2 - 150,
+            this.scale.width / 2,
+            this.scale.height / 2 - menuHeight * 0.35,
             `LEVEL UP! (Level ${this.player.level})`,
             {
                 fontFamily: 'Arial',
-                fontSize: 32,
+                fontSize: titleFontSize,
                 color: '#ffffff',
                 stroke: '#000000',
                 strokeThickness: 4,
@@ -503,23 +514,26 @@ class GameScene extends Phaser.Scene {
         
         // Create option buttons
         options.forEach((option, index) => {
-            const y = CONFIG.GAME_HEIGHT / 2 - 50 + index * 80;
+            const y = this.scale.height / 2 - menuHeight * 0.15 + index * (menuHeight * 0.2);
             
             // Create button
             const button = this.add.image(
-                CONFIG.GAME_WIDTH / 2,
+                this.scale.width / 2,
                 y,
                 'level-up-option'
             ).setScrollFactor(0).setInteractive().setDepth(101);
             
+            // Scale the button
+            button.setDisplaySize(menuWidth * 0.7, menuHeight * 0.15);
+            
             // Add text
             const text = this.add.text(
-                CONFIG.GAME_WIDTH / 2,
+                this.scale.width / 2,
                 y,
                 option.text,
                 {
                     fontFamily: 'Arial',
-                    fontSize: 20,
+                    fontSize: optionFontSize,
                     color: '#ffffff',
                     align: 'center'
                 }

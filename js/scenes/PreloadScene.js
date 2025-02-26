@@ -16,10 +16,10 @@ class PreloadScene extends Phaser.Scene {
 
     createLoadingBar() {
         // Add loading background
-        this.add.image(CONFIG.GAME_WIDTH / 2, CONFIG.GAME_HEIGHT / 2, 'loading-background');
+        this.add.image(this.scale.width / 2, this.scale.height / 2, 'loading-background');
         
         // Create loading bar
-        const loadingBar = this.add.sprite(CONFIG.GAME_WIDTH / 2, CONFIG.GAME_HEIGHT / 2, 'loading-bar');
+        const loadingBar = this.add.sprite(this.scale.width / 2, this.scale.height / 2, 'loading-bar');
         
         // Set up progress bar animation
         this.load.on('progress', (value) => {
