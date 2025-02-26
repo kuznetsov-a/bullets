@@ -5,89 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bullet Heaven</title>
     <style>
-        html, body {
+        body {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
             background-color: #000;
+            overflow: hidden;
             touch-action: none;
         }
-        
         #game-container {
-            width: 100%;
-            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-        }
-        
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-        
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-            canvas {
-                object-fit: cover;
-            }
-        }
-        
-        /* Error message styling */
-        #error-message {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: #ff0000;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            z-index: 1000;
-            max-width: 80%;
+            width: 100vw;
+            height: 100vh;
         }
     </style>
+    <!-- Load Phaser from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
 </head>
 <body>
     <div id="game-container"></div>
-    <div id="error-message"></div>
     
-    <!-- Phaser -->
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
-    
-    <!-- Error handling -->
-    <script>
-        window.addEventListener('error', function(e) {
-            const errorDiv = document.getElementById('error-message');
-            errorDiv.style.display = 'block';
-            errorDiv.innerHTML = '<h2>Game Error</h2><p>' + e.message + '</p><p>Please refresh the page to try again.</p>';
-            console.error('Game Error:', e);
-        });
-    </script>
-    
-    <!-- Game Scripts -->
-    <script src="js/config.js"></script>
-    <script src="js/utils/ObjectPool.js"></script>
-    <script src="js/entities/Player.js"></script>
-    <script src="js/entities/Monster.js"></script>
-    <script src="js/weapons/Weapon.js"></script>
-    <script src="js/weapons/BulletWeapon.js"></script>
-    <script src="js/weapons/AuraWeapon.js"></script>
-    <script src="js/weapons/HammerWeapon.js"></script>
-    <script src="js/weapons/WhipWeapon.js"></script>
-    <script src="js/managers/UIManager.js"></script>
-    <script src="js/managers/GameState.js"></script>
-    <script src="js/managers/Spawner.js"></script>
-    <script src="js/scenes/BootScene.js"></script>
-    <script src="js/scenes/PreloadScene.js"></script>
-    <script src="js/scenes/MainMenuScene.js"></script>
-    <script src="js/scenes/GameScene.js"></script>
-    <script src="js/main.js"></script>
+    <!-- Game scripts -->
+    <script src="src/config.js"></script>
+    <script src="src/utils/ObjectPool.js"></script>
+    <script src="src/utils/GameState.js"></script>
+    <script src="src/entities/Player.js"></script>
+    <script src="src/entities/weapons/Weapon.js"></script>
+    <script src="src/entities/weapons/BulletWeapon.js"></script>
+    <script src="src/entities/weapons/AuraWeapon.js"></script>
+    <script src="src/entities/weapons/HammerWeapon.js"></script>
+    <script src="src/entities/weapons/WhipWeapon.js"></script>
+    <script src="src/entities/Monster.js"></script>
+    <script src="src/managers/Spawner.js"></script>
+    <script src="src/managers/UIManager.js"></script>
+    <script src="src/scenes/GameScene.js"></script>
+    <script src="src/scenes/LevelUpScene.js"></script>
+    <script src="src/main.js"></script>
 </body>
 </html> 

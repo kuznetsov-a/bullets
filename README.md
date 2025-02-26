@@ -4,74 +4,63 @@ A 2D bullet heaven game where you fight endless waves of enemies, level up, and 
 
 ## Features
 
-- **Multiple Weapon Types**: Bullets, Auras, Rotating Hammers, and Whips
-- **Endless Waves**: Fight increasingly difficult waves of enemies
-- **Leveling System**: Gain XP and level up to upgrade weapons or acquire new ones
-- **Large Map**: Explore a world larger than the screen with a player-centered camera
-- **Random Power-ups**: Collect power-ups for temporary boosts
-- **Persistent Game State**: Your progress is automatically saved
-
-## Controls
-
-### Desktop
-- **WASD** or **Arrow Keys**: Move the player
-- **Mouse**: Aim weapons
-
-### Mobile
-- **Touch and Drag**: Move the player
-- Weapons automatically aim in the direction of movement
-
-## Weapons
-
-1. **Bullet**: Fires projectiles in a set direction
-2. **Aura**: Deals continuous damage in an area around the player
-3. **Rotating Hammer**: Rotates around the player, damaging enemies on contact
-4. **Whip**: Swings in an arc, hitting multiple enemies
-
-## Enemies
-
-1. **Walker**: Basic enemy that moves toward the player
-2. **Charger**: Fast but has low HP
-3. **Tank**: Slow but has high HP
-4. **Shooter**: Fires projectiles at the player
-
-## Power-ups
-
-1. **Health**: Restores player HP
-2. **Speed**: Temporarily increases movement speed
-3. **Fire Rate**: Temporarily increases weapon fire rate
+- **Endless Survival Gameplay**: Fight waves of enemies that increase in number as you level up.
+- **4 Unique Weapons**: Bullet, Aura, Rotating Hammer, and Whip, each with their own attack patterns.
+- **Upgrade System**: Level up and choose to add new weapons or upgrade existing ones.
+- **Large Map**: Explore a large map with randomly placed obstacles.
+- **Multiple Enemy Types**: Face different enemy types with unique behaviors.
+- **Power-ups**: Collect power-ups for temporary boosts.
+- **Persistent Game State**: Your game progress is automatically saved.
 
 ## How to Play
 
-1. Open `index.html` in a web browser
-2. Click "New Game" to start a new game or "Continue" to resume a saved game
-3. Move around to avoid enemies and let your weapons automatically attack
-4. Collect XP by defeating enemies to level up
-5. Choose upgrades when you level up
-6. Collect power-ups to gain temporary advantages
-7. Survive as long as possible!
+### Controls
 
-## Development
+- **Desktop**: Use WASD or arrow keys to move.
+- **Mobile**: Use the on-screen joystick to move.
 
-This game is built using [Phaser 3](https://phaser.io/phaser3), a powerful HTML5 game framework.
+### Gameplay
 
-### Project Structure
+1. Move around to avoid enemies.
+2. Your weapons will automatically attack nearby enemies.
+3. Defeat enemies to gain XP and level up.
+4. When you level up, choose to add a new weapon or upgrade an existing one.
+5. Collect power-ups dropped by enemies for temporary boosts.
+6. The game ends when your health reaches zero.
 
-- `index.html`: Main HTML file
-- `js/`: JavaScript files
-  - `config.js`: Game configuration
-  - `main.js`: Game initialization
-  - `entities/`: Player and enemy classes
-  - `weapons/`: Weapon classes
-  - `managers/`: Game state, UI, and spawner managers
-  - `scenes/`: Game scenes
-  - `utils/`: Utility classes
+## Running the Game
+
+### Online
+
+Play the game directly in your browser by visiting: [GitHub Pages URL]
+
+### Locally
+
+1. Clone this repository:
+   ```
+   git clone [repository URL]
+   ```
+
+2. Navigate to the project directory:
+   ```
+   cd bullet-heaven
+   ```
+
+3. Open the `index.html` file in your web browser.
+
+## Technical Details
+
+- Built with Phaser 3, a powerful HTML5 game framework.
+- Uses SVG-style vector graphics for all game elements.
+- Implements object pooling for efficient performance with many entities.
+- Fully client-side with no backend requirements.
+- Saves game state to browser local storage.
 
 ## Credits
 
-- Game Design: Based on the Bullet Heaven specification
-- Engine: [Phaser 3](https://phaser.io/phaser3)
+- Game design and implementation based on the "Bullet Heaven Game Specification".
+- Built with [Phaser 3](https://phaser.io/phaser3).
 
 ## License
 
-This project is open source and available under the MIT License. 
+This project is open source and available under the [MIT License](LICENSE). 
