@@ -14,11 +14,18 @@ class UIManager {
         this.container.setScrollFactor(0); // Fix to camera
         this.container.setDepth(100);
         
+        // Store screen dimensions
+        this.screenWidth = scene.scale.width;
+        this.screenHeight = scene.scale.height;
+        
         // Create UI elements
         this.createHPBar();
         this.createXPBar();
         this.createWeaponSlots();
         this.createLevelText();
+        
+        // Position UI elements based on current screen size
+        this.positionUIElements();
     }
     
     /**
@@ -35,6 +42,98 @@ class UIManager {
         
         // Update weapon slots
         this.updateWeaponSlots(time);
+    }
+    
+    /**
+     * Handle screen resize
+     * @param {number} width - New screen width
+     * @param {number} height - New screen height
+     */
+    resize(width, height) {
+        // Update stored dimensions
+        this.screenWidth = width;
+        this.screenHeight = height;
+        
+        // Reposition UI elements
+        this.positionUIElements();
+    }
+    
+    /**
+     * Position UI elements based on screen size
+     */
+    positionUIElements() {
+        // Calculate UI scale based on screen size
+        const baseWidth = CONFIG.BASE_WIDTH;
+        const baseHeight = CONFIG.BASE_HEIGHT;
+        const scaleX = this.screenWidth / baseWidth;
+        const scaleY = this.screenHeight / baseHeight;
+        const scale = Math.min(scaleX, scaleY);
+        
+        // Apply minimum and maximum scale limits
+        const uiScale = Phaser.Math.Clamp(scale, 0.5, 1.5);
+        
+        // Position HP bar
+        const hpBarWidth = 200 * uiScale;
+        const hpBarHeight = 20 * uiScale;
+        const hpBarPadding = 10 * uiScale;
+        
+        this.hpBarBg.setPosition(hpBarPadding, hpBarPadding);
+        this.hpBarBg.setDisplaySize(hpBarWidth, hpBarHeight);
+        
+        this.hpBarFill.setPosition(hpBarPadding, hpBarPadding);
+        this.hpBarFill.setDisplaySize(hpBarWidth, hpBarHeight);
+        
+        this.hpText.setPosition(hpBarPadding + hpBarWidth / 2, hpBarPadding + hpBarHeight / 2);
+        this.hpText.setFontSize(14 * uiScale);
+        
+        // Position XP bar
+        const xpBarWidth = 200 * uiScale;
+        const xpBarHeight = 10 * uiScale;
+        const xpBarY = hpBarPadding + hpBarHeight + 5 * uiScale;
+        
+        this.xpBarBg.setPosition(hpBarPadding, xpBarY);
+        this.xpBarBg.setDisplaySize(xpBarWidth, xpBarHeight);
+        
+        this.xpBarFill.setPosition(hpBarPadding, xpBarY);
+        // Width is updated in updateXPBar()
+        this.xpBarFill.setDisplaySize(this.xpBarFill.displayWidth, xpBarHeight);
+        
+        // Position level text
+        const levelTextY = xpBarY + xpBarHeight + 5 * uiScale;
+        this.levelText.setPosition(hpBarPadding, levelTextY);
+        this.levelText.setFontSize(14 * uiScale);
+        
+        // Position weapon slots
+        this.positionWeaponSlots(uiScale);
+    }
+    
+    /**
+     * Position weapon slots based on screen size
+     * @param {number} scale - UI scale factor
+     */
+    positionWeaponSlots(scale) {
+        const slotSize = 40 * scale;
+        const slotPadding = 5 * scale;
+        const startX = this.screenWidth - slotSize - slotPadding;
+        const startY = slotPadding;
+        
+        for (let i = 0; i < this.weaponSlots.length; i++) {
+            const slot = this.weaponSlots[i];
+            const y = startY + (slotSize + slotPadding) * i;
+            
+            slot.bg.setPosition(startX, y);
+            slot.bg.setDisplaySize(slotSize, slotSize);
+            
+            if (slot.icon) {
+                slot.icon.setPosition(startX, y);
+                slot.icon.setDisplaySize(slotSize * 0.8, slotSize * 0.8);
+            }
+            
+            if (slot.cooldown) {
+                slot.cooldown.setPosition(startX, y);
+                slot.cooldown.setDisplaySize(slotSize, slotSize);
+            }
+        }
     }
     
     /**

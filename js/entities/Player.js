@@ -16,8 +16,18 @@ class Player {
         this.sprite.setCollideWorldBounds(true);
         this.sprite.setDepth(10);
         
-        // Set up physics body
-        this.sprite.body.setSize(40, 40);
+        // Scale the sprite to maintain appropriate game size
+        // Adjust this scale factor as needed for your game
+        const scaleFactor = 0.5; // Adjust this value based on your game's scale
+        this.sprite.setScale(scaleFactor);
+        
+        // Set up physics body for 1:2 proportion (width:height)
+        // For a 120x240 image, we adjust the hitbox accordingly
+        const hitboxWidth = 40;
+        const hitboxHeight = 80; // 2x the width to maintain 1:2 proportion
+        this.sprite.body.setSize(hitboxWidth, hitboxHeight);
+        // Center the hitbox on the sprite
+        this.sprite.body.setOffset((120 - hitboxWidth) / 2, (240 - hitboxHeight) / 2);
         
         // Player stats
         this.maxHp = CONFIG.PLAYER_MAX_HP;

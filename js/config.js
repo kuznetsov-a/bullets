@@ -1,7 +1,11 @@
 const CONFIG = {
     // Game settings
-    GAME_WIDTH: 800,
-    GAME_HEIGHT: 600,
+    BASE_WIDTH: 800,    // Base design width
+    BASE_HEIGHT: 600,   // Base design height
+    MIN_WIDTH: 320,     // Minimum width
+    MIN_HEIGHT: 480,    // Minimum height
+    MAX_WIDTH: 1920,    // Maximum width
+    MAX_HEIGHT: 1080,   // Maximum height
     WORLD_WIDTH: 2400,
     WORLD_HEIGHT: 2400,
     

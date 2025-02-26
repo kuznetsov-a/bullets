@@ -24,6 +24,10 @@ class GameScene extends Phaser.Scene {
         this.projectileGroup = null;
         this.obstacleGroup = null;
         this.powerUpGroup = null;
+        
+        // Responsive scaling
+        this.currentWidth = 0;
+        this.currentHeight = 0;
     }
 
     create() {
@@ -61,6 +65,9 @@ class GameScene extends Phaser.Scene {
         // Set up input
         this.setupInput();
         
+        // Set up responsive handling
+        this.setupResponsiveHandling();
+        
         // Start autosave timer
         this.autosaveTimer = this.time.addEvent({
             delay: CONFIG.AUTOSAVE_INTERVAL,
@@ -75,6 +82,58 @@ class GameScene extends Phaser.Scene {
         // Load game state if available
         if (window.gameState.hasSavedGame()) {
             this.loadGameState();
+        }
+    }
+    
+    // Set up responsive handling
+    setupResponsiveHandling() {
+        // Store initial size
+        this.currentWidth = this.scale.width;
+        this.currentHeight = this.scale.height;
+        
+        // Listen for resize events
+        this.scale.on('resize', this.resize, this);
+        
+        // Initial resize call
+        this.resize(this.scale.gameSize);
+    }
+    
+    // Handle resize events
+    resize(gameSize) {
+        const width = gameSize.width;
+        const height = gameSize.height;
+        
+        // Update current dimensions
+        this.currentWidth = width;
+        this.currentHeight = height;
+        
+        // Adjust camera zoom based on screen size
+        // This helps maintain a consistent view regardless of screen size
+        const baseRatio = CONFIG.BASE_WIDTH / CONFIG.BASE_HEIGHT;
+        const currentRatio = width / height;
+        
+        let zoom = 1;
+        
+        // Adjust zoom based on aspect ratio difference
+        if (currentRatio > baseRatio) {
+            // Wider screen - zoom based on height
+            zoom = height / CONFIG.BASE_HEIGHT;
+        } else {
+            // Taller screen - zoom based on width
+            zoom = width / CONFIG.BASE_WIDTH;
+        }
+        
+        // Apply zoom with limits
+        const minZoom = 0.5;
+        const maxZoom = 1.5;
+        zoom = Phaser.Math.Clamp(zoom, minZoom, maxZoom);
+        
+        // Set camera zoom
+        this.cameras.main.setZoom(zoom);
+        
+        // Update UI for new dimensions
+        if (this.uiManager) {
+            this.uiManager.resize(width, height);
         }
     }
     
