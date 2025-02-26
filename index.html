@@ -3,62 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>Bullet Heaven</title>
     <style>
-        * {
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            touch-action: none;
-            background-color: #222;
-        }
-        #gameCanvas {
-            display: block;
-            width: 100%;
-            height: 100%;
             background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
         }
-        #joystickArea {
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 150px;
-            height: 150px;
+        #game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        #stats {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            color: white;
-            font-family: Arial, sans-serif;
-            text-align: right;
+        canvas {
+            display: block;
+            margin: 0 auto;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <div id="joystickArea"></div>
-    <div id="stats">
-        <div>Score: <span id="score">0</span></div>
-        <div>Entities: <span id="entityCount">0</span></div>
-        <div>FPS: <span id="fps">0</span></div>
-        <div>Build: <span id="buildName">unknown</span></div>
-    </div>
+    <div id="game-container"></div>
     
-    <!-- Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.10.1/dist/nipplejs.min.js"></script>
+    <!-- Phaser -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     
-    <!-- Game Script with dynamic version -->
-    <script>
-        document.write('<script src="game.js?v=' + new Date().getTime() + '"><\/script>');
-    </script>
+    <!-- Game Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/utils/ObjectPool.js"></script>
+    <script src="js/entities/Player.js"></script>
+    <script src="js/entities/Monster.js"></script>
+    <script src="js/weapons/Weapon.js"></script>
+    <script src="js/weapons/BulletWeapon.js"></script>
+    <script src="js/weapons/AuraWeapon.js"></script>
+    <script src="js/weapons/HammerWeapon.js"></script>
+    <script src="js/weapons/WhipWeapon.js"></script>
+    <script src="js/managers/UIManager.js"></script>
+    <script src="js/managers/GameState.js"></script>
+    <script src="js/managers/Spawner.js"></script>
+    <script src="js/scenes/BootScene.js"></script>
+    <script src="js/scenes/PreloadScene.js"></script>
+    <script src="js/scenes/MainMenuScene.js"></script>
+    <script src="js/scenes/GameScene.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html> 
