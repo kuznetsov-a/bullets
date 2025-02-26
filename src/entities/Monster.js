@@ -300,6 +300,9 @@ class EnemyProjectile extends Phaser.Physics.Arcade.Sprite {
         // Add to scene
         scene.add.existing(this);
         
+        // Enable physics on this sprite
+        scene.physics.add.existing(this);
+        
         // Set up projectile properties
         this.speed = 0;
         this.damage = 0;
