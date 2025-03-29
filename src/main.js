@@ -1,42 +1,30 @@
-// Initialize the game when the window loads
-window.addEventListener('load', function() {
-    // Create Phaser game configuration
-    const gameConfig = {
-        type: Phaser.AUTO,
-        width: CONFIG.width,
-        height: CONFIG.height,
-        backgroundColor: CONFIG.backgroundColor,
-        parent: 'game-container',
-        physics: {
-            default: 'arcade',
-            arcade: {
-                gravity: { x: 0, y: 0 },
-                debug: false
-            }
-        },
-        scale: {
-            mode: Phaser.Scale.RESIZE,
-            autoCenter: Phaser.Scale.CENTER_BOTH
-        },
-        scene: [GameScene, LevelUpScene]
-    };
+import { GameScene } from './classes/GameScene.js';
+import { Config } from './classes/Config.js';
 
-    // Create the game instance
-    const game = new Phaser.Game(gameConfig);
+const config = {
+    type: Phaser.AUTO,
+    width: window.innerWidth,
+    height: window.innerHeight,
+    backgroundColor: '#000',
+    parent: 'game-container',
+    physics: {
+        default: 'arcade',
+        arcade: {
+            debug: false,
+            gravity: { x: 0, y: 0 }
+        }
+    },
+    scene: [GameScene]
+};
 
-    // Handle window resize
-    window.addEventListener('resize', function() {
-        game.scale.resize(window.innerWidth, window.innerHeight);
-    });
+const game = new Phaser.Game(config);
 
-    // Prevent browser default behaviors for touch events
-    document.addEventListener('touchstart', function(e) {
-        if (e.target.nodeName !== 'CANVAS') return;
-        e.preventDefault();
-    }, { passive: false });
+// Handle resizing
+window.addEventListener('resize', () => {
+    game.scale.resize(window.innerWidth, window.innerHeight);
+});
 
-    document.addEventListener('touchmove', function(e) {
-        if (e.target.nodeName !== 'CANVAS') return;
-        e.preventDefault();
-    }, { passive: false });
-}); 
+// Prevent browser scaling on double-tap (mobile)
+document.addEventListener('dblclick', (e) => {
+    e.preventDefault();
+}, { passive: false }); 

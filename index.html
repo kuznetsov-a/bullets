@@ -4,43 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Bullet Heaven</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <style>
         body {
             margin: 0;
             padding: 0;
             background-color: #000;
-            overflow: hidden;
-            touch-action: none;
-        }
-        #game-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            width: 100vw;
             height: 100vh;
+            touch-action: none;
+            overflow: hidden;
+        }
+        #game-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
     </style>
-    <!-- Load Phaser from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
 </head>
 <body>
     <div id="game-container"></div>
-    
-    <!-- Game scripts -->
-    <script src="src/config.js"></script>
-    <script src="src/utils/ObjectPool.js"></script>
-    <script src="src/utils/GameState.js"></script>
-    <script src="src/entities/Player.js"></script>
-    <script src="src/entities/weapons/Weapon.js"></script>
-    <script src="src/entities/weapons/BulletWeapon.js"></script>
-    <script src="src/entities/weapons/AuraWeapon.js"></script>
-    <script src="src/entities/weapons/HammerWeapon.js"></script>
-    <script src="src/entities/weapons/WhipWeapon.js"></script>
-    <script src="src/entities/Monster.js"></script>
-    <script src="src/managers/Spawner.js"></script>
-    <script src="src/managers/UIManager.js"></script>
-    <script src="src/scenes/GameScene.js"></script>
-    <script src="src/scenes/LevelUpScene.js"></script>
-    <script src="src/main.js"></script>
+    <script src="src/main.js" type="module"></script>
 </body>
 </html> 
