@@ -91,16 +91,18 @@ export class Enemy {
             this.healthBar.width = 30 * healthPercent;
         }
         
+        // Check if enemy is offscreen for culling
+        this.checkOffscreen();
+        
         // Basic AI - move toward player
-        this.moveTowardPlayer();
+        if (!this.sprite.body.sleeping) {
+            this.moveTowardPlayer();
+        }
         
         // Shooter enemy specific behavior
         if (this.type === 'SHOOTER') {
             this.updateShooterBehavior();
         }
-        
-        // Check if enemy is offscreen for culling
-        this.checkOffscreen();
     }
     
     moveTowardPlayer() {
