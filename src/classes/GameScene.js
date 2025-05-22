@@ -395,7 +395,7 @@ export class GameScene extends Phaser.Scene {
         // Update each enemy to follow player or do AI behavior
         this.enemies.getChildren().forEach(enemy => {
             if (enemy.active) {
-                enemy.update();
+                enemy.enemy.update();
             }
         });
     }

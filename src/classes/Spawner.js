@@ -149,6 +149,9 @@ export class Spawner {
                     enemy.sprite.x = x;
                     enemy.sprite.y = y;
                     enemy.hp = enemy.maxHp;
+                    enemy.sprite.body.reset(x, y);
+                    enemy.isOffscreen = false;
+                    enemy.sprite.body.sleeping = false;
                 } else {
                     enemy.createSprite(x, y);
                     enemy.setupPhysics();
